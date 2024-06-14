@@ -14,7 +14,7 @@ To see applications that have been deployed, you can visit the link http://stagi
 
 ## Demo
 
-Insert gif or link to demo
+https://youtu.be/DiSfKjOgrfk
 
 ## Features
 
