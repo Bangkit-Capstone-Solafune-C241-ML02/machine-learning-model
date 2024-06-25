@@ -1,9 +1,9 @@
 
 # Machine learning models that can detect and mask solar panels from sentinel-2 13-band tiff images
 
-This repository is a repository for training AI models. To see the backend implementation, you can visit the link https://github.com/Bangkit-Capstone-Solafune-C241-ML02/backend and for the frontend implementation, you can visit the link https://github.com/Bangkit-Capstone-Solafune-C241-ML02 /frontend.
+This repository is a repository for training AI models. To see the backend implementation, you can visit the link https://github.com/Bangkit-Capstone-Solafune-C241-ML02/backend and for the frontend implementation, you can visit the link https://github.com/Bangkit-Capstone-Solafune-C241-ML02/frontend.
 
-To see applications that have been deployed, you can visit the link http://staging.sensevis.tech
+To see applications that have been deployed, you can visit the link http://sensevis.tech
 
 ## Authors
 
