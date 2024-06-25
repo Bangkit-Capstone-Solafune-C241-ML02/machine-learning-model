@@ -33,7 +33,6 @@ def process_mask_upsample(protos, masks_in, bboxes, shape):
     """
 
     c, mh, mw = protos.shape  # CHW
-    print(masks_in.shape)
     masks = (masks_in @ protos.float().view(c, -1)).sigmoid().view(-1, mh, mw)
     masks = F.interpolate(masks[None], shape, mode="bilinear", align_corners=False)[0]  # CHW
     masks = crop_mask(masks, bboxes)  # CHW

@@ -29,6 +29,11 @@ from multiprocessing.pool import ThreadPool
 from pathlib import Path
 
 import numpy as np
+import cv2
+import matplotlib.pyplot as plt
+from math import ceil
+
+import numpy as np
 import torch
 from tqdm import tqdm
 
@@ -68,7 +73,58 @@ from utils.segment.general import mask_iou, process_mask, process_mask_native, s
 from utils.segment.metrics import Metrics, ap_per_class_box_and_mask
 from utils.segment.plots import plot_images_and_masks
 from utils.torch_utils import de_parallel, select_device, smart_inference_mode
+import tifffile as tiff
 
+def crop_mask(binary_mask, crop_margin, h, w) :
+    # Scale down the binary mask
+
+    binary_mask = cv2.resize(binary_mask, (int(w), int(h)), interpolation=cv2.INTER_NEAREST)
+
+    # Define the crop size with center anchor point
+    crop_margin_w = ceil(w * crop_margin)
+    crop_margin_h = ceil(h * crop_margin)
+
+    x1, y1 = crop_margin_w, crop_margin_h
+    x2, y2 = w - x1, h - y1
+
+    binary_mask = binary_mask[y1:y2, x1:x2]
+    
+    # Rescale back to original size
+    binary_mask = cv2.resize(binary_mask, (w, h), interpolation=cv2.INTER_NEAREST)
+
+    # Return cropped Binary Mask
+    return binary_mask
+
+def create_binary_mask(pred_mask) :
+    binary_mask = torch.zeros(pred_mask.shape[1:], dtype=torch.float32)
+
+    for mask in pred_mask.cpu() :
+        binary_mask = torch.max(binary_mask, mask)
+
+    binary_mask = binary_mask.numpy().astype(np.uint8)
+
+    return binary_mask
+
+
+def save_mask(pred_masks, path) :
+    '''
+    Save the mask with the original size
+    '''
+    file_name = os.path.basename(path).replace('s2_image', 'mask')
+    data_name = os.path.normpath(path).split(os.sep)[-4]
+    h, w, c = tiff.imread(path).shape
+
+    evaluation_path = os.path.join(os.getcwd(), 'dataset', 'evaluation', 'mask', file_name)
+    o_h, o_w, = tiff.imread(evaluation_path).shape
+    
+    binary_mask = create_binary_mask(pred_masks)
+    binary_mask = crop_mask(binary_mask, 0.05, o_h, o_w)
+    binary_mask = cv2.resize(binary_mask, (o_w, o_h), interpolation=cv2.INTER_NEAREST)
+
+    # Save the mask
+    save_path = os.path.join(os.getcwd(), 'masks', data_name, file_name)
+    tiff.imwrite(save_path, binary_mask)
+            
 
 def save_one_txt(predn, save_conf, shape, file):
     """Saves detection results in txt format; includes class, xywh (normalized), optionally confidence if `save_conf` is
@@ -328,6 +384,9 @@ def run(
             gt_masks = masks[midx]
             pred_masks = process(proto, pred[:, 6:], pred[:, :4], shape=im[si].shape[1:])
 
+            # Save the Mask
+            save_mask(pred_masks, paths[si])
+            
             # Predictions
             if single_cls:
                 pred[:, 5] = 0

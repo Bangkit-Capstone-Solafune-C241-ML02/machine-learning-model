@@ -117,11 +117,11 @@ def replicate(im, labels):
 
     return im, labels
 
-def letterbox(im, new_shape=(640, 640), color=(114,) * 12, auto=True, scaleFill=False, scaleup=True, stride=32):
+def letterbox(im, new_shape=(640, 640), color=(114,), auto=True, scaleFill=False, scaleup=True, stride=32):
     """Resizes and pads 12-channel multispectral image to new_shape with stride-multiple constraints,
     returns resized image, ratio, padding."""
 
-    # Set the color of padding
+    # Set the color of padding times the channel counts
     color = (144,) * im.shape[2]
 
     shape = im.shape[:2]  # current shape [height, width]
@@ -152,14 +152,7 @@ def letterbox(im, new_shape=(640, 640), color=(114,) * 12, auto=True, scaleFill=
 
     top, bottom = int(round(dh - 0.1)), int(round(dh + 0.1))
     left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
-
-    # Create a new image with the desired color and size
-    if len(im.shape) == 3:
-        padded_im = np.full((new_shape[0], new_shape[1], im.shape[2]), color, dtype=im.dtype)
-    else:
-        raise ValueError("Image should have 12 channels.")
-
-    # Place the resized image in the center
+    padded_im = np.full((new_shape[0], new_shape[1], im.shape[2]), color, dtype=im.dtype)
     padded_im[top:top + new_unpad[1], left:left + new_unpad[0], :] = im
 
     return padded_im, ratio, (dw, dh)
