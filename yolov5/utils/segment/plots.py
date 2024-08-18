@@ -25,22 +25,26 @@ def plot_images_and_masks(images, targets, masks, paths=None, fname="images.jpg"
 
     max_size = 1920  # max image size
     max_subplots = 16  # max image subplots, i.e. 4x4
-    bs, c, h, w = images.shape  # batch size, _, height, width
+    bs, _, h, w = images.shape  # batch size, _, height, width
     bs = min(bs, max_subplots)  # limit plot images
     ns = np.ceil(bs**0.5)  # number of subplots (square)
 
-    # Extract RGB channels (Red : 3, Green : 2, Blue: 1)
-    rgb_images = images[:, [3, 2, 1], :, :]
-    
-    if np.max(rgb_images[0]) <= 1:
-        rgb_images *= 255  # de-normalise (optional)
+    # Extract RGB channels (Red : -4, Green : -3, Blue: -2)
+    images = images[:, [-4, -3, -2], :, :]
 
-    rgb_images = np.nan_to_num(rgb_images, nan=0.0) # Replace NaN with zeros
-    rgb_images = np.clip(rgb_images, 0, 255).astype(np.uint8) # Clip to [0,255] int
+    # Min-max normalization for each channel
+    for i in range(3):
+        channel = images[:, i, :, :]
+        min_val = channel.min(axis=(1, 2), keepdims=True)
+        max_val = channel.max(axis=(1, 2), keepdims=True)
+        images[:, i, :, :] = (channel - min_val) / (max_val - min_val + 1e-8)  # Add epsilon to avoid division by zero
     
+    if np.max(images[0]) <= 1:
+        images *= 255  # de-normalise (optional)
+
     # Build Image
     mosaic = np.full((int(ns * h), int(ns * w), 3), 255, dtype=np.uint8)  # init
-    for i, im in enumerate(rgb_images):
+    for i, im in enumerate(images):
         if i == max_subplots:  # if last batch has fewer images than we expect
             break
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin

@@ -33,9 +33,6 @@ import os
 import platform
 import sys
 from pathlib import Path
-import numpy as np
-import matplotlib.pyplot as plt
-from PIL import Image
 
 import torch
 
@@ -138,7 +135,7 @@ def run(
         with dt[0]:
             im = torch.from_numpy(im).to(model.device)
             im = im.half() if model.fp16 else im.float()  # uint8 to fp16/32
-            # im /= 255  # 0 - 255 to 0.0 - 1.0
+            im /= 255  # 0 - 255 to 0.0 - 1.0
             if len(im.shape) == 3:
                 im = im[None]  # expand for batch dim
 
@@ -155,7 +152,6 @@ def run(
         # pred = utils.general.apply_classifier(pred, classifier_model, im, im0s)
 
         # Process predictions
-        
         for i, det in enumerate(pred):  # per image
             seen += 1
             if webcam:  # batch_size >= 1
@@ -175,30 +171,10 @@ def run(
                     # scale bbox first the crop masks
                     det[:, :4] = scale_boxes(im.shape[2:], det[:, :4], im0.shape).round()  # rescale boxes to im0 size
                     masks = process_mask_native(proto[i], det[:, 6:], det[:, :4], im0.shape[:2])  # HWC
-                    
-                    binary_mask = torch.zeros(masks.shape[1:], dtype=torch.uint8)
-
-                    for mask in masks.cpu() :
-                        binary_mask = torch.max(binary_mask, mask)
-
-                    binary_mask[binary_mask > 0] = 255
-
-                    # Convert the binary mask to a NumPy array
-                    binary_mask_np = binary_mask.numpy()
-                    binary_mask_np = np.expand_dims(binary_mask_np, axis=-1)
-                    
-                    # Create a PIL image from the NumPy array
-                    binary_mask_img = Image.fromarray(binary_mask_np.squeeze(), mode='L')
-                    
-                    # Save the image as a JPG file
-                    binary_mask_img.save("/datadisk2/c241_ml02/workspace/binary_mask.jpg")
-                    
                 else:
                     masks = process_mask(proto[i], det[:, 6:], det[:, :4], im.shape[2:], upsample=True)  # HWC
                     det[:, :4] = scale_boxes(im.shape[2:], det[:, :4], im0.shape).round()  # rescale boxes to im0 size
-                    print(masks.shape)
                     
-
                 # Segments
                 if save_txt:
                     segments = [

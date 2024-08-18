@@ -216,7 +216,6 @@ class BaseModel(nn.Module):
 class DetectionModel(BaseModel):
     # YOLOv5 detection model
     def __init__(self, cfg="yolov5s.yaml", ch=3, nc=None, anchors=None):
-        ch=20
         """Initializes YOLOv5 model with configuration file, input channels, number of classes, and custom anchors."""
         super().__init__()
         if isinstance(cfg, dict):
@@ -330,8 +329,9 @@ Model = DetectionModel  # retain YOLOv5 'Model' class for backwards compatibilit
 
 class SegmentationModel(DetectionModel):
     # YOLOv5 segmentation model
-    def __init__(self, cfg="yolov5s-seg.yaml", ch=3, nc=None, anchors=None):
+    def __init__(self, cfg="yolov5s-seg.yaml", ch=20, nc=None, anchors=None):
         """Initializes a YOLOv5 segmentation model with configurable params: cfg (str) for configuration, ch (int) for channels, nc (int) for num classes, anchors (list)."""
+        
         super().__init__(cfg, ch, nc, anchors)
 
 

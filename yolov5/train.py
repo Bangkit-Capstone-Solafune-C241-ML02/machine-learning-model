@@ -17,8 +17,6 @@ Tutorial:   https://docs.ultralytics.com/yolov5/tutorials/train_custom_data
 import argparse
 import math
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "5" 
-os.environ["WORLD_SIZE"] = "1"
 import random
 import subprocess
 import sys
